@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from PIL import Image
+import io
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -33,10 +35,24 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
+def convert_image_to_jpg(image_url):
+    response = requests.get(image_url)
+    image = Image.open(io.BytesIO(response.content))
+    image_rgb = image.convert('RGB')  # Convert to RGB in case of alpha channel
+    buffer = io.BytesIO()
+    image_rgb.save(buffer, format='JPEG')
+    buffer.seek(0)
+    return buffer
+
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.image(url, width=100)
+            image_jpg_buffer = convert_image_to_jpg(url)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image(url, caption="Originale", width=100)
+            with col2:
+                st.image(image_jpg_buffer, caption="Convertita in JPG", width=100)
     else:
         st.write("Nessuna immagine trovata.")
 
