@@ -48,9 +48,11 @@ def show_images(image_urls):
         for url in image_urls:
             image_data = requests.get(url).content
             jpeg_data = convert_to_jpeg(image_data)
-            st.image(jpeg_data, caption='Immagine', use_column_width=True)
+            # Visualizza l'immagine con larghezza desiderata
+            st.image(jpeg_data, caption='Immagine', width=100, use_column_width=True)
     else:
         st.write("Nessuna immagine trovata.")
+
 
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
