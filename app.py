@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from concurrent.futures import ThreadPoolExecutor
 from rembg import remove
 from PIL import Image
 import io
@@ -32,7 +33,7 @@ def get_images_from_url(url):
         else:
             st.error(f"Errore HTTP: {res.status_code}")
             return []
-    except Exception as e:
+    except requests.RequestException as e:
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
@@ -45,12 +46,25 @@ def convert_to_jpeg(image_data):
 
 def show_images(image_urls):
     if image_urls:
-        for url in image_urls:
-            image_data = requests.get(url).content
-            jpeg_data = convert_to_jpeg(image_data)
-            st.image(jpeg_data, caption='Immagine', use_column_width=True)
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            for url in image_urls:
+                futures.append(executor.submit(load_and_display_image, url))
+            for future in futures:
+                image_data = future.result()
+                if image_data:
+                    st.image(image_data, caption='Immagine', use_column_width=True)
     else:
         st.write("Nessuna immagine trovata.")
+
+def load_and_display_image(url):
+    try:
+        image_data = requests.get(url).content
+        jpeg_data = convert_to_jpeg(image_data)
+        return jpeg_data
+    except requests.RequestException as e:
+        st.error(f"Errore durante il caricamento dell'immagine da {url}: {str(e)}")
+        return None
 
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
