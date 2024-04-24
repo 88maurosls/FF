@@ -37,21 +37,21 @@ def get_images_from_url(url):
 
 def convert_webp_to_jpg(image_data):
     image = Image.open(io.BytesIO(image_data))
-    image = image.convert('RGB')
-    buf = io.BytesIO()
-    image.save(buf, format='JPEG')
-    buf.seek(0)
-    return buf.getvalue()
+    if image.format == 'WEBP':
+        image = image.convert('RGB')
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG')
+        buf.seek(0)
+        return buf.getvalue()
+    else:
+        return image_data
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            if url.lower().endswith('.webp'):
-                response = requests.get(url)
-                image_data = convert_webp_to_jpg(response.content)
-                st.image(image_data, width=100, output_format='JPEG')
-            else:
-                st.image(url, width=100)
+            response = requests.get(url)
+            image_data = convert_webp_to_jpg(response.content)
+            st.image(image_data, width=100, format='JPEG')
     else:
         st.write("No images found.")
 
