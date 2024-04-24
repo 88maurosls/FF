@@ -51,7 +51,10 @@ def show_images(image_urls):
         for url in image_urls:
             response = requests.get(url)
             image_data = convert_webp_to_jpg(response.content)
-            st.image(image_data, width=100, format='JPEG')
+            if image_data:
+                st.image(image_data, width=100, output_format='JPEG', channels='RGB')
+            else:
+                st.error("Failed to process image data.")
     else:
         st.write("No images found.")
 
