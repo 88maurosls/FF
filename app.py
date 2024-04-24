@@ -36,7 +36,7 @@ def get_images_from_url(url):
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.image(url, caption='Immagine', output_format='JPEG', width=100)
+            st.markdown(f'<img src="{url}" width="100">', unsafe_allow_html=True)
     else:
         st.write("Nessuna immagine trovata.")
 
