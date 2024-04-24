@@ -4,9 +4,6 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
-import os
-import hashlib
-from datetime import datetime, timedelta
 from rembg import remove
 
 # Funzione per scaricare e memorizzare in cache le immagini
@@ -29,7 +26,8 @@ def convert_to_jpeg(image):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    return Image.open(io.BytesIO(remove(png_data)))
+    jpeg_data = remove(png_data)
+    return Image.open(io.BytesIO(jpeg_data))
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=10, ttl=3600)
