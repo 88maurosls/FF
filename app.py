@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-@st.cache_data
 def get_images_from_url(url):
     res = requests.get(url, headers={'user-agent': 'some agent'})
     if res.status_code == 200:
@@ -17,10 +16,14 @@ def get_images_from_url(url):
                 if isinstance(images, list):
                     for img in images:
                         if isinstance(img, dict):
-                            image_urls.append(img.get('contentUrl'))
+                            image_url = img.get('contentUrl')
+                            if image_url:
+                                image_urls.append(image_url)
                 else:
                     if isinstance(images, dict):
-                        image_urls.append(images.get('contentUrl'))
+                        image_url = images.get('contentUrl')
+                        if image_url:
+                            image_urls.append(image_url)
             return image_urls
         else:
             st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
@@ -29,33 +32,20 @@ def get_images_from_url(url):
         st.error(f"Errore HTTP: {res.status_code}")
         return []
 
-def download_image(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            return response.content
-        return None
-    except Exception as e:
-        print(f"Errore durante il download dell'immagine: {str(e)}")
-        return None
-
 def show_images(image_urls):
-    for url in image_urls:
-        content = download_image(url)
-        if content:
-            st.image(content, use_column_width=True, caption=url)
-
-def main():
-    st.title("Downloader di Immagini da Farfetch")
-    codice = st.text_input("Inserisci l'ID Farfetch:", "")
-    if st.button("Scarica Immagini"):
-        if codice:
-            url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-            image_urls = get_images_from_url(url)
-            if image_urls:
-                show_images(image_urls)
+    if image_urls:
+        for url in image_urls:
+            response = requests.head(url)
+            if response.status_code == 200:
+                st.image(url, width=100)
             else:
-                st.write("Nessuna immagine trovata.")
+                st.write(f"Impossibile visualizzare l'immagine: {url}")
+    else:
+        st.write("Nessuna immagine trovata.")
 
-if __name__ == "__main__":
-    main()
+codice = st.text_input("Inserisci l'ID Farfetch:", "")
+if st.button("Scarica Immagini"):
+    if codice:
+        url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
+        image_urls = get_images_from_url(url)
+        show_images(image_urls)
