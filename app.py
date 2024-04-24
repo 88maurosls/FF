@@ -33,24 +33,16 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def download_image(image_url):
-    response = requests.get(image_url)
-    if response.status_code == 200:
-        return response.content
-    return None
-
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            image_bytes = download_image(url)
-            if image_bytes:
-                st.image(url, width=100)
-                st.download_button(
-                    label="Scarica immagine",
-                    data=image_bytes,
-                    file_name=url.split("/")[-1],
-                    mime='image/jpeg'
-                )
+            st.image(url, width=100)
+            st.download_button(
+                label="Scarica immagine",
+                data=lambda url=url: requests.get(url).content,  # Lambda function to delay download
+                file_name=url.split("/")[-1],
+                mime='image/jpeg'
+            )
     else:
         st.write("Nessuna immagine trovata.")
 
