@@ -35,33 +35,32 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-def download_image(url):
-    response = requests.get(url)
-    return response.content, response.headers.get('Content-Type', '')
-
-def convert_image(image_data, content_type):
-    if 'image/webp' in content_type:
-        image = Image.open(io.BytesIO(image_data))
+def convert_image(image_data):
+    image = Image.open(io.BytesIO(image_data))
+    if image.format == 'WEBP':
         image = image.convert('RGB')
         buf = io.BytesIO()
         image.save(buf, format='JPEG')
         buf.seek(0)
         return buf.getvalue(), 'image/jpeg'
-    return image_data, content_type
+    else:
+        return image_data, 'image/png'  # Assume PNG if not JPEG or WEBP for simplicity
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)  # Display image
-            # Define a button for each image to handle conversion and download
-            btn = st.button("Convert & Download", key=url)
-            if btn:
-                image_data, content_type = download_image(url)
-                converted_data, final_mime_type = convert_image(image_data, content_type)
-                st.download_button(label="Download Image",
-                                   data=converted_data,
-                                   file_name=url.split('/')[-1].replace('.webp', '.jpg'),
-                                   mime=final_mime_type)
+            response = requests.get(url)
+            if '.webp' in url.lower():
+                image_data, content_type = convert_image(response.content)
+                file_name = url.split('/')[-1].replace('.webp', '.jpg')
+                mime_type = 'image/jpeg'
+            else:
+                image_data = response.content
+                file_name = url.split('/')[-1]
+                mime_type = response.headers.get('Content-Type', 'image/png')
+            
+            st.download_button("Convert & Download", image_data, file_name=file_name, mime=mime_type)
     else:
         st.write("No images found.")
 
