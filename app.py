@@ -5,10 +5,12 @@ import json
 from PIL import Image
 import io
 
+session = requests.Session()  # Usare una sessione persistente per le richieste HTTP
+
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_images_from_url(url):
     try:
-        res = requests.get(url, headers={'user-agent': 'some agent'})
+        res = session.get(url, headers={'user-agent': 'some agent'})
         if res.status_code == 200:
             soup = BeautifulSoup(res.content, 'html.parser')
             script_data = soup.find('script', type='application/ld+json')
@@ -35,35 +37,33 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
+def download_image(url):
+    response = session.get(url)
+    return response.content, response.headers.get('Content-Type', '')
+
+def convert_image(image_data, content_type):
+    if 'image/webp' in content_type:
+        image = Image.open(io.BytesIO(image_data))
+        image = image.convert('RGB')
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG', quality=85)  # Ridurre la qualità per file più piccoli
+        buf.seek(0)
+        return buf.getvalue(), 'image/jpeg'
+    return image_data, content_type
+
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)  # Display image
             # Use a placeholder to put the download button after the image is displayed
-            download_placeholder = st.empty()
-            download_placeholder.button("Convert & Download", key=url, on_click=handle_download, args=(download_placeholder, url))
+            btn = st.button("Convert & Download", key=url)
+            if btn:
+                with st.spinner('Processing image...'):
+                    image_data, mime_type = download_image(url)
+                    converted_data, final_mime_type = convert_image(image_data, mime_type)
+                    st.download_button("Download Image", converted_data, file_name=url.split('/')[-1], mime=final_mime_type)
     else:
         st.write("No images found.")
-
-def handle_download(placeholder, url):
-    # This function will be called when the user clicks "Convert & Download"
-    placeholder.empty()  # Remove the button
-    with st.spinner('Processing image...'):
-        response = requests.get(url)
-        image_data, mime_type = process_image(response.content, url)
-        placeholder.download_button("Download Image", image_data, file_name=url.split('/')[-1], mime=mime_type)
-
-def process_image(image_data, url):
-    # Check if the image is webp and convert if necessary
-    if '.webp' in url.lower():
-        image = Image.open(io.BytesIO(image_data))
-        image = image.convert('RGB')
-        buf = io.BytesIO()
-        image.save(buf, format='JPEG')
-        buf.seek(0)
-        return buf.getvalue(), 'image/jpeg'
-    else:
-        return image_data, 'image/png'  # Assume PNG if not JPEG or WEBP
 
 codice = st.text_input("Insert Farfetch ID:", "")
 if st.button("Search Images"):
