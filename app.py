@@ -2,9 +2,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
-import os
-import urllib.request
-import base64
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -36,25 +33,30 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def main():
-    st.title("Downloader di Immagini da Farfetch")
-    codice = st.text_input("Inserisci l'ID Farfetch:", "")
-    if st.button("Scarica Immagini"):
-        if codice:
-            url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-            image_urls = get_images_from_url(url)
-            if image_urls:
-                for i, url in enumerate(image_urls, start=1):
-                    st.write(f"Immagine {i}:")
-                    st.image(url, use_column_width=True)
-                    download_button_label = f"Scarica Immagine {i}"
-                    download_image(url, download_button_label)
+def download_image(image_url):
+    response = requests.get(image_url)
+    if response.status_code == 200:
+        return response.content
+    return None
 
-def download_image(url, button_label):
-    image_content = urllib.request.urlopen(url).read()
-    base64_image = base64.b64encode(image_content).decode('utf-8')
-    href = f'<a href="data:image/jpeg;base64,{base64_image}" download="{os.path.basename(url)}">{button_label}</a>'
-    st.markdown(href, unsafe_allow_html=True)
+def show_images(image_urls):
+    if image_urls:
+        for url in image_urls:
+            image_bytes = download_image(url)
+            if image_bytes:
+                st.image(url, width=100)
+                st.download_button(
+                    label="Scarica immagine",
+                    data=image_bytes,
+                    file_name=url.split("/")[-1],
+                    mime='image/jpeg'
+                )
+    else:
+        st.write("Nessuna immagine trovata.")
 
-if __name__ == "__main__":
-    main()
+codice = st.text_input("Inserisci l'ID Farfetch:", "")
+if st.button("Scarica Immagini"):
+    if codice:
+        url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
+        image_urls = get_images_from_url(url)
+        show_images(image_urls)
