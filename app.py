@@ -37,33 +37,36 @@ def get_images_from_url(url):
 
 def download_image(url):
     response = requests.get(url)
-    if url.lower().endswith('.webp'):
-        # Convert from webp to jpg only when needed
-        image = Image.open(io.BytesIO(response.content))
+    return response.content, response.headers.get('Content-Type', '')
+
+def convert_image(image_data, content_type):
+    if 'image/webp' in content_type:
+        image = Image.open(io.BytesIO(image_data))
         image = image.convert('RGB')
         buf = io.BytesIO()
         image.save(buf, format='JPEG')
         buf.seek(0)
         return buf.getvalue(), 'image/jpeg'
-    else:
-        # Return original image bytes
-        return response.content, response.headers['Content-Type']
+    return image_data, content_type
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)  # Display image
-            bytes_data, mime_type = download_image(url)  # Preparing for download without displaying
-            file_name = url.split('/')[-1]
-            if mime_type == 'image/webp':
-                file_name = file_name.replace('.webp', '.jpg')  # Change file extension if webp
-            # Display download button
-            st.download_button(label="Convert & Download", data=bytes_data, file_name=file_name, mime=mime_type)
+            # Define a button for each image to handle conversion and download
+            btn = st.button("Convert & Download", key=url)
+            if btn:
+                image_data, content_type = download_image(url)
+                converted_data, final_mime_type = convert_image(image_data, content_type)
+                st.download_button(label="Download Image",
+                                   data=converted_data,
+                                   file_name=url.split('/')[-1].replace('.webp', '.jpg'),
+                                   mime=final_mime_type)
     else:
         st.write("No images found.")
 
 codice = st.text_input("Insert Farfetch ID:", "")
-if st.button("Download Images"):
+if st.button("Search Images"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
