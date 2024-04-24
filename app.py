@@ -8,7 +8,7 @@ import io
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
     try:
-        res = requests.get(url, headers={'user-agent': 'my user agent'})
+        res = requests.get(url, headers={'user-agent': 'some agent'})
         if res.status_code == 200:
             soup = BeautifulSoup(res.content, 'html.parser')
             script_data = soup.find('script', type='application/ld+json')
@@ -32,23 +32,25 @@ def get_images_from_url(url):
             st.error(f"HTTP Error: {res.status_code}")
             return []
     except Exception as e:
-        st.error(f"Error while trying to retrieve images from URL: {str(e)}")
+        st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-def convert_and_show_images(image_urls):
+def convert_webp_to_jpg(image_data):
+    image = Image.open(io.BytesIO(image_data))
+    image = image.convert('RGB')
+    buf = io.BytesIO()
+    image.save(buf, format='JPEG')
+    buf.seek(0)
+    return buf.getvalue()
+
+def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            response = requests.get(url)
-            if 'image/webp' in response.headers.get('Content-Type', ''):
-                # Convert webp to jpg
-                image = Image.open(io.BytesIO(response.content))
-                image = image.convert('RGB')
-                buf = io.BytesIO()
-                image.save(buf, format='JPEG')
-                buf.seek(0)
-                st.image(buf, width=100, format='JPEG')
+            if url.lower().endswith('.webp'):
+                response = requests.get(url)
+                image_data = convert_webp_to_jpg(response.content)
+                st.image(image_data, width=100, output_format='JPEG')
             else:
-                # Directly show the image if not webp
                 st.image(url, width=100)
     else:
         st.write("No images found.")
@@ -58,4 +60,4 @@ if st.button("Download Images"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
-        convert_and_show_images(image_urls)
+        show_images(image_urls)
