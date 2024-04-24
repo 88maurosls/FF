@@ -26,7 +26,7 @@ def convert_to_jpeg(image):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    jpeg_data = remove(png_data, alpha_matting=True, alpha_matting_foreground_threshold=240, alpha_matting_background_threshold=10)
+    jpeg_data = remove(png_data, alpha_matting=True, alpha_matting_foreground_threshold=0, alpha_matting_background_threshold=0)
     return Image.open(io.BytesIO(jpeg_data))
 
 # Funzione per ottenere le immagini dall'URL
