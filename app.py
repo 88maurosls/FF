@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from PIL import Image
+import io
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -33,10 +35,18 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def show_images(image_urls):
+def convert_and_show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.image(url, width=100)
+            response = requests.get(url)
+            image = Image.open(io.BytesIO(response.content))
+            if image.format == 'WEBP':
+                image = image.convert('RGB')
+                buf = io.BytesIO()
+                image.save(buf, format='JPEG')
+                st.image(buf.getvalue(), width=100, output_format='JPEG')
+            else:
+                st.image(image, width=100)
     else:
         st.write("Nessuna immagine trovata.")
 
@@ -45,4 +55,4 @@ if st.button("Scarica Immagini"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
-        show_images(image_urls)
+        convert_and_show_images(image_urls)
