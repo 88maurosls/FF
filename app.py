@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
-import base64
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True)
@@ -33,25 +32,14 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-# Funzione per convertire l'immagine in base64
+# Funzione per convertire l'immagine in JPEG
 def convert_image(image_data):
     image = Image.open(io.BytesIO(image_data))
     if image.format == 'WEBP':
         image = image.convert('RGB')
     img_buffer = io.BytesIO()
     image.save(img_buffer, format="JPEG")
-    return base64.b64encode(img_buffer.getvalue()).decode(), "image/jpeg"
-
-# Funzione per visualizzare le immagini e fornire il link di download
-def show_images(image_urls):
-    for url in image_urls:
-        st.image(url, width=300)
-        if st.button("Convert & Download", key=url):
-            with st.spinner('Processing image...'):
-                response = requests.get(url)
-                image_data, content_type = convert_image(response.content)
-                encoded_image_data = f"data:{content_type};base64,{image_data}"
-                st.markdown(f'<a href="{encoded_image_data}" download="image.jpg">Download Image</a>', unsafe_allow_html=True)
+    return img_buffer.getvalue()
 
 # Interfaccia utente Streamlit
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
@@ -59,4 +47,10 @@ if st.button("Scarica Immagini"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
-        show_images(image_urls)
+        for url in image_urls:
+            st.image(url, width=300)
+            if st.button("Convert & Download", key=url):
+                with st.spinner('Processing image...'):
+                    response = requests.get(url)
+                    converted_image_data = convert_image(response.content)
+                    st.download_button(label="Download Image", data=converted_image_data, file_name='image.jpg', mime='image/jpeg')
