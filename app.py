@@ -5,6 +5,7 @@ import json
 from PIL import Image
 import io
 from rembg import remove
+import cv2
 
 # Funzione per scaricare e memorizzare in cache le immagini
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=20, ttl=3600)
@@ -28,8 +29,10 @@ def convert_to_jpeg(image):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    jpeg_data = remove(png_data, target_ambient=True, alphamatting=False)  # Impostare target_ambient=True e alphamatting=False
-    return Image.open(io.BytesIO(jpeg_data))
+    # Carica l'immagine utilizzando OpenCV e salvala senza alcuna trasformazione
+    img_np = cv2.imdecode(np.frombuffer(png_data, np.uint8), cv2.IMREAD_UNCHANGED)
+    _, buf = cv2.imencode('.jpg', img_np)
+    return Image.open(io.BytesIO(buf))
 
 
 
