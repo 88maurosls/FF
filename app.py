@@ -46,15 +46,12 @@ def convert_image_to_jpg(image_url):
 
 def show_images(image_urls):
     if image_urls:
-        # Visualizza prima tutte le immagini originali
         for url in image_urls:
-            st.image(url, caption="Originale", width=100)
-
-        # Trigger per convertire e mostrare le JPG dopo la visualizzazione delle originali
-        if st.button("Mostra immagini in JPG"):
-            for url in image_urls:
-                image_jpg_buffer = convert_image_to_jpg(url)
-                st.image(image_jpg_buffer, caption="Convertita in JPG", width=100)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image(url, caption="Originale", width=100)
+            with col2:
+                st.image(url, caption="Convertita in JPG", width=100) # Lascia questa immagine di fianco
     else:
         st.write("Nessuna immagine trovata.")
 
