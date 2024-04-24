@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
+import os  # Aggiunta dell'importazione di os
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
