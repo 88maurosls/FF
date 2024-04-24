@@ -5,7 +5,7 @@ import json
 from PIL import Image
 import io
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_images_from_url(url):
     try:
         res = requests.get(url, headers={'user-agent': 'some agent'})
@@ -35,34 +35,35 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-def convert_image(image_data):
-    image = Image.open(io.BytesIO(image_data))
-    if image.format == 'WEBP':
+def show_images(image_urls):
+    if image_urls:
+        for url in image_urls:
+            st.image(url, width=100)  # Display image
+            # Use a placeholder to put the download button after the image is displayed
+            download_placeholder = st.empty()
+            download_placeholder.button("Convert & Download", key=url, on_click=handle_download, args=(download_placeholder, url))
+    else:
+        st.write("No images found.")
+
+def handle_download(placeholder, url):
+    # This function will be called when the user clicks "Convert & Download"
+    placeholder.empty()  # Remove the button
+    with st.spinner('Processing image...'):
+        response = requests.get(url)
+        image_data, mime_type = process_image(response.content, url)
+        placeholder.download_button("Download Image", image_data, file_name=url.split('/')[-1], mime=mime_type)
+
+def process_image(image_data, url):
+    # Check if the image is webp and convert if necessary
+    if '.webp' in url.lower():
+        image = Image.open(io.BytesIO(image_data))
         image = image.convert('RGB')
         buf = io.BytesIO()
         image.save(buf, format='JPEG')
         buf.seek(0)
         return buf.getvalue(), 'image/jpeg'
     else:
-        return image_data, 'image/png'  # Assume PNG if not JPEG or WEBP for simplicity
-
-def show_images(image_urls):
-    if image_urls:
-        for url in image_urls:
-            st.image(url, width=100)  # Display image
-            response = requests.get(url)
-            if '.webp' in url.lower():
-                image_data, content_type = convert_image(response.content)
-                file_name = url.split('/')[-1].replace('.webp', '.jpg')
-                mime_type = 'image/jpeg'
-            else:
-                image_data = response.content
-                file_name = url.split('/')[-1]
-                mime_type = response.headers.get('Content-Type', 'image/png')
-            
-            st.download_button("Convert & Download", image_data, file_name=file_name, mime=mime_type)
-    else:
-        st.write("No images found.")
+        return image_data, 'image/png'  # Assume PNG if not JPEG or WEBP
 
 codice = st.text_input("Insert Farfetch ID:", "")
 if st.button("Search Images"):
