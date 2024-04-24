@@ -35,26 +35,6 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def show_images(image_urls):
-    if image_urls:
-        for url in image_urls:
-            image = urllib.request.urlopen(url).read()
-            st.image(image, width=100, caption=f"Immagine: {url}")
-            if st.button("Scarica", key=url):
-                download_image(url)
-    else:
-        st.write("Nessuna immagine trovata.")
-
-def download_image(url):
-    try:
-        image_name = os.path.basename(url)
-        with urllib.request.urlopen(url) as response:
-            with open(image_name, "wb") as out_file:
-                out_file.write(response.read())
-        st.success(f"Immagine scaricata con successo: {image_name}")
-    except Exception as e:
-        st.error(f"Errore durante il download dell'immagine: {str(e)}")
-
 def main():
     st.title("Downloader di Immagini da Farfetch")
     codice = st.text_input("Inserisci l'ID Farfetch:", "")
@@ -62,7 +42,14 @@ def main():
         if codice:
             url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
             image_urls = get_images_from_url(url)
-            show_images(image_urls)
+            if image_urls:
+                for i, url in enumerate(image_urls, start=1):
+                    st.write(f"Immagine {i}:")
+                    st.image(url, use_column_width=True)
+                    st.markdown(get_image_download_link(url), unsafe_allow_html=True)
+
+def get_image_download_link(url):
+    return f'<a href="{url}" download>Scarica Immagine</a>'
 
 if __name__ == "__main__":
     main()
