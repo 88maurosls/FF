@@ -4,3 +4,4 @@ beautifulsoup4
 Pillow
 asyncio
 aiohttp
+rembg
