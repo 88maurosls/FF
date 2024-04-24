@@ -4,5 +4,4 @@ beautifulsoup4
 Pillow
 asyncio
 aiohttp
-opencv-python-headless
-numpy
+webptools
