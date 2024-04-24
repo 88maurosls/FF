@@ -2,8 +2,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
-import asyncio
-import aiohttp
 
 @st.cache_data
 def get_images_from_url(url):
@@ -31,27 +29,21 @@ def get_images_from_url(url):
         st.error(f"Errore HTTP: {res.status_code}")
         return []
 
-async def download_image(session, url):
+def download_image(url):
     try:
-        async with session.get(url) as response:
-            if response.status == 200:
-                return await response.read()
-            else:
-                return None
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.content
+        return None
     except Exception as e:
         print(f"Errore durante il download dell'immagine: {str(e)}")
         return None
 
-async def download_images(image_urls):
-    async with aiohttp.ClientSession() as session:
-        tasks = [download_image(session, url) for url in image_urls]
-        images_content = await asyncio.gather(*tasks)
-        return images_content
-
-def show_images(images_content):
-    for content in images_content:
+def show_images(image_urls):
+    for url in image_urls:
+        content = download_image(url)
         if content:
-            st.image(content, use_column_width=True)
+            st.image(content, use_column_width=True, caption=url)
 
 def main():
     st.title("Downloader di Immagini da Farfetch")
@@ -61,8 +53,7 @@ def main():
             url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
             image_urls = get_images_from_url(url)
             if image_urls:
-                images_content = asyncio.run(download_images(image_urls))
-                show_images(images_content)
+                show_images(image_urls)
             else:
                 st.write("Nessuna immagine trovata.")
 
