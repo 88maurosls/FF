@@ -36,9 +36,10 @@ def get_images_from_url(url):
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.markdown(f'<img src="{url}" width="100">', unsafe_allow_html=True)
+            st.markdown(f'<img src="{url}" width="100" type="image/jpeg">', unsafe_allow_html=True)
     else:
         st.write("Nessuna immagine trovata.")
+
 
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
