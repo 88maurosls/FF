@@ -48,7 +48,7 @@ def show_images(image_urls):
         for url in image_urls:
             image_data = requests.get(url).content
             jpeg_data = convert_to_jpeg(image_data)
-            st.image(jpeg_data, caption='Immagine', use_column_width=True)
+            st.image(jpeg_data, caption='', use_column_width=True)
     else:
         st.write("Nessuna immagine trovata.")
 
