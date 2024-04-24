@@ -1,9 +1,9 @@
 import streamlit as st
 import requests
-import shutil
 from bs4 import BeautifulSoup
 import json
-import os
+from PIL import Image
+import io
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -35,25 +35,21 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def fast_save_image(image_url):
+def download_and_convert_image(image_url):
     try:
-        response = requests.get(image_url, stream=True)
-        if response.status_code == 200:
-            file_name = os.path.basename(image_url).split('?')[0] + ".jpg"
-            with open(file_name, 'wb') as out_file:
-                shutil.copyfileobj(response.raw, out_file)
-            del response
-            st.success(f"Immagine salvata: {file_name}")
-        else:
-            st.error(f"Errore HTTP {response.status_code} durante il download di {image_url}")
+        response = requests.get(image_url)
+        image = Image.open(io.BytesIO(response.content))
+        file_name = os.path.basename(image_url).split('?')[0] + ".jpg"
+        image.save(file_name, "JPEG")
+        st.success(f"Immagine convertita e salvata come: {file_name}")
     except Exception as e:
-        st.error(f"Non è stato possibile salvare l'immagine {image_url}: {str(e)}")
+        st.error(f"Non è stato possibile convertire o salvare l'immagine {image_url}: {str(e)}")
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)
-            fast_save_image(url)
+            download_and_convert_image(url)
     else:
         st.write("Nessuna immagine trovata.")
 
