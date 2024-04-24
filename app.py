@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
-import pyvips
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -34,29 +33,10 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def convert_webp_to_jpg(image_url):
-    try:
-        # Download the WebP image
-        response = requests.get(image_url)
-        if response.status_code == 200:
-            webp_data = response.content
-            # Convert WebP to JPG using PyVips
-            image = pyvips.Image.new_from_buffer(webp_data, "")
-            jpg_data = image.write_to_buffer(".jpg")
-            return jpg_data
-        else:
-            st.error(f"Errore nel scaricare l'immagine WebP da {image_url}")
-            return None
-    except Exception as e:
-        st.error(f"Errore durante la conversione dell'immagine WebP in JPG: {str(e)}")
-        return None
-
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            jpg_data = convert_webp_to_jpg(url)
-            if jpg_data:
-                st.image(jpg_data, caption='Immagine convertita da WebP a JPG', width=100)
+            st.image(url, caption='Immagine', output_format='JPEG', width=100)
     else:
         st.write("Nessuna immagine trovata.")
 
