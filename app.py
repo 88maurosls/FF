@@ -7,6 +7,7 @@ import io
 import os
 import hashlib
 from datetime import datetime, timedelta
+from rembg import remove
 
 # Funzione per scaricare e memorizzare in cache le immagini
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=20, ttl=3600)
@@ -59,12 +60,23 @@ def get_images_from_url(url):
         st.warning(f"Errore durante il recupero delle immagini dall'URL: {str(e)}")
         return []
 
+# Funzione per rimuovere lo sfondo dalle immagini utilizzando rembg
+def remove_background(image):
+    with io.BytesIO() as output:
+        image.save(output, format="PNG")
+        image_data = output.getvalue()
+    return Image.open(io.BytesIO(remove(image_data)))
+
 # Funzione per visualizzare le immagini
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.subheader("Immagine")
-            st.image(url, use_column_width=True)
+            st.subheader("Immagine originale")
+            original_image = download_image(url)
+            st.image(original_image, use_column_width=True, caption="Immagine originale")
+            st.subheader("Immagine con sfondo rimosso")
+            removed_background_image = remove_background(original_image)
+            st.image(removed_background_image, use_column_width=True, caption="Immagine con sfondo rimosso")
     else:
         st.warning("Nessuna immagine trovata.")
 
