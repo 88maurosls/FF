@@ -5,6 +5,7 @@ import json
 import asyncio
 import aiohttp
 
+@st.cache_data
 def get_images_from_url(url):
     res = requests.get(url, headers={'user-agent': 'some agent'})
     if res.status_code == 200:
@@ -58,7 +59,7 @@ def main():
     if st.button("Scarica Immagini"):
         if codice:
             url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-            image_urls = st.cache_resource(func=get_images_from_url, resource_url=url)
+            image_urls = get_images_from_url(url)
             if image_urls:
                 images_content = asyncio.run(download_images(image_urls))
                 show_images(images_content)
