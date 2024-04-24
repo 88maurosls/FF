@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
-from IPython.display import display, Image as IPImage
+from io import BytesIO
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -37,8 +37,8 @@ def get_images_from_url(url):
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            image = requests.get(url)
-            display(IPImage(image.content, format='jpeg'))
+            image_data = requests.get(url).content
+            st.image(BytesIO(image_data), caption='Immagine', width=100)
     else:
         st.write("Nessuna immagine trovata.")
 
