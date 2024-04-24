@@ -3,43 +3,40 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
+@st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
-    res = requests.get(url, headers={'user-agent': 'some agent'})
-    if res.status_code == 200:
-        soup = BeautifulSoup(res.content, 'html.parser')
-        script_data = soup.find('script', type='application/ld+json')
-        if script_data:
-            data = json.loads(script_data.text)
-            images = data.get('image')
-            image_urls = []
-            if images:
-                if isinstance(images, list):
-                    for img in images:
-                        if isinstance(img, dict):
-                            image_url = img.get('contentUrl')
-                            if image_url:
-                                image_urls.append(image_url)
-                else:
-                    if isinstance(images, dict):
-                        image_url = images.get('contentUrl')
-                        if image_url:
-                            image_urls.append(image_url)
-            return image_urls
+    try:
+        res = requests.get(url, headers={'user-agent': 'some agent'})
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.content, 'html.parser')
+            script_data = soup.find('script', type='application/ld+json')
+            if script_data:
+                data = json.loads(script_data.text)
+                images = data.get('image')
+                image_urls = []
+                if images:
+                    if isinstance(images, list):
+                        for img in images:
+                            if isinstance(img, dict):
+                                image_urls.append(img.get('contentUrl'))
+                    else:
+                        if isinstance(images, dict):
+                            image_urls.append(images.get('contentUrl'))
+                return image_urls
+            else:
+                st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
+                return []
         else:
-            st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
+            st.error(f"Errore HTTP: {res.status_code}")
             return []
-    else:
-        st.error(f"Errore HTTP: {res.status_code}")
+    except Exception as e:
+        st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            response = requests.head(url)
-            if response.status_code == 200:
-                st.image(url, width=100)
-            else:
-                st.write(f"Impossibile visualizzare l'immagine: {url}")
+            st.image(url, width=100)
     else:
         st.write("Nessuna immagine trovata.")
 
