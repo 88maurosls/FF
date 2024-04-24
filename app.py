@@ -47,12 +47,9 @@ def convert_image_to_jpg(image_url):
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
+            st.image(url, caption="Originale", width=100)  # Mostra prima l'originale
             image_jpg_buffer = convert_image_to_jpg(url)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.image(url, caption="Originale", width=100)
-            with col2:
-                st.image(image_jpg_buffer, caption="Convertita in JPG", width=100)
+            st.image(image_jpg_buffer, caption="Convertita in JPG", width=100)  # Poi la JPG
     else:
         st.write("Nessuna immagine trovata.")
 
