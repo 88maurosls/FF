@@ -78,7 +78,7 @@ def show_images(image_urls):
 
 # Funzione principale
 def main():
-    st.title("Scarica Immagini da Farfetch")
+    st.title("Scarica Immagini da FF")
 
     codice = st.text_input("Inserisci l'ID Farfetch:", "")
 
