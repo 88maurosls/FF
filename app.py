@@ -29,7 +29,7 @@ def convert_to_jpeg(image, quality=95, noise_level=0):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    jpeg_data = remove(png_data, quality=quality, noise_level=noise_level)
+    jpeg_data = remove(png_data, quality=100, noise_level=100)
     return Image.open(io.BytesIO(jpeg_data))
 
 
