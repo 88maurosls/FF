@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True)
@@ -48,10 +48,10 @@ if st.button("Scarica Immagini"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
-        threads = []
-        for idx, url in enumerate(image_urls, start=1):
-            st.image(url, width=300, caption=f"Immagine {idx}")
-            file_name = f"image_{idx}.jpg"
-            download_image_as_jpg(url, file_name)
-            button_label = f"Scarica Immagine {idx}"
-            st.markdown(f"[{button_label}]({file_name})")
+        with ThreadPoolExecutor() as executor:
+            for idx, url in enumerate(image_urls, start=1):
+                st.image(url, width=300, caption=f"Immagine {idx}")
+                file_name = f"image_{idx}.jpg"
+                executor.submit(download_image_as_jpg, url, file_name)
+                button_label = f"Scarica Immagine {idx}"
+                st.markdown(f"[{button_label}]({file_name})")
