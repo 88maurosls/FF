@@ -5,7 +5,7 @@ import json
 from PIL import Image
 import io
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True, hash_funcs={io.BytesIO: lambda _: None})
 def get_images_from_url(url):
     try:
         res = requests.get(url, headers={'user-agent': 'some agent'})
@@ -35,6 +35,7 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
+@st.cache(hash_funcs={io.BytesIO: lambda _: None})
 def convert_webp_to_jpg(image_data):
     image = Image.open(io.BytesIO(image_data))
     if image.format == 'WEBP':
@@ -52,7 +53,7 @@ def show_images(image_urls):
             response = requests.get(url)
             image_data = convert_webp_to_jpg(response.content)
             if image_data:
-                st.image(image_data, width=100, output_format='JPEG', channels='RGB')
+                st.image(image_data, width=100, format='JPEG', channels='RGB')
             else:
                 st.error("Failed to process image data.")
     else:
