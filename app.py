@@ -47,10 +47,11 @@ def show_images(image_urls):
 
 def download_image(url):
     try:
-        image = urllib.request.urlopen(url).read()
-        with open(os.path.basename(url), "wb") as f:
-            f.write(image)
-        st.success(f"Immagine scaricata con successo: {os.path.basename(url)}")
+        image_name = os.path.basename(url)
+        with urllib.request.urlopen(url) as response:
+            with open(image_name, "wb") as out_file:
+                out_file.write(response.read())
+        st.success(f"Immagine scaricata con successo: {image_name}")
     except Exception as e:
         st.error(f"Errore durante il download dell'immagine: {str(e)}")
 
