@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
+import base64
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True)
@@ -41,6 +42,11 @@ def convert_image(image_data):
     image.save(img_buffer, format="JPEG")
     return img_buffer.getvalue()
 
+# Funzione per salvare temporaneamente l'immagine convertita
+def save_temp_image(image_data):
+    with open("temp_image.jpg", "wb") as f:
+        f.write(image_data)
+
 # Interfaccia utente Streamlit
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
@@ -53,4 +59,5 @@ if st.button("Scarica Immagini"):
                 with st.spinner('Processing image...'):
                     response = requests.get(url)
                     converted_image_data = convert_image(response.content)
-                    st.download_button(label="Download Image", data=converted_image_data, file_name='image.jpg', mime='image/jpeg')
+                    save_temp_image(converted_image_data)
+                    st.markdown(get_binary_file_downloader_html("temp_image.jpg", "Download Image"), unsafe_allow_html=True)
