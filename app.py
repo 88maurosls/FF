@@ -26,7 +26,7 @@ def convert_to_jpeg(image):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    jpeg_data = remove(png_data)
+    jpeg_data = remove(png_data, alpha_matting=True)  # Impostare alpha_matting=True per un effetto finale di rembg pari a 0
     return Image.open(io.BytesIO(jpeg_data))
 
 # Funzione per ottenere le immagini dall'URL
