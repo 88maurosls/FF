@@ -20,12 +20,12 @@ def get_images_from_url(url):
                     if isinstance(images, list):
                         for img in images:
                             if isinstance(img, dict):
-                                thumbnail = img.get('thumbnailUrl')
+                                thumbnail = img.get('thumbnailUrl')  # Cambiato da 'contentUrl'
                                 if thumbnail:
                                     image_urls.append(thumbnail)
                     else:
                         if isinstance(images, dict):
-                            thumbnail = images.get('thumbnailUrl')
+                            thumbnail = images.get('thumbnailUrl')  # Cambiato da 'contentUrl'
                             if thumbnail:
                                 image_urls.append(thumbnail)
                 return image_urls
