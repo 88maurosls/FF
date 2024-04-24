@@ -35,38 +35,30 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-def convert_image(image_data):
-    image = Image.open(io.BytesIO(image_data))
-    if image.format == 'WEBP':
+def download_image(url):
+    response = requests.get(url)
+    if url.lower().endswith('.webp'):
+        # Convert from webp to jpg only when needed
+        image = Image.open(io.BytesIO(response.content))
         image = image.convert('RGB')
         buf = io.BytesIO()
         image.save(buf, format='JPEG')
         buf.seek(0)
-        return buf.getvalue()
+        return buf.getvalue(), 'image/jpeg'
     else:
-        return image_data
+        # Return original image bytes
+        return response.content, response.headers['Content-Type']
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            response = requests.get(url)
-            st.image(url, width=100)  # Show the image
-            # Button to download the image, possibly converting it if it is a WEBP
-            if '.webp' in url.lower():
-                image_data = convert_image(response.content)
-                st.download_button(
-                    label="Convert & Download",
-                    data=image_data,
-                    file_name=url.split('/')[-1].replace('.webp', '.jpg'),
-                    mime='image/jpeg'
-                )
-            else:
-                st.download_button(
-                    label="Download",
-                    data=response.content,
-                    file_name=url.split('/')[-1],
-                    mime='image/jpeg' if url.lower().endswith('.jpg') else 'image/png'
-                )
+            st.image(url, width=100)  # Display image
+            bytes_data, mime_type = download_image(url)  # Preparing for download without displaying
+            file_name = url.split('/')[-1]
+            if mime_type == 'image/webp':
+                file_name = file_name.replace('.webp', '.jpg')  # Change file extension if webp
+            # Display download button
+            st.download_button(label="Convert & Download", data=bytes_data, file_name=file_name, mime=mime_type)
     else:
         st.write("No images found.")
 
