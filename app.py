@@ -38,4 +38,5 @@ if st.button("Scarica Immagini"):
         image_urls = get_images_from_url(url)
         for idx, url in enumerate(image_urls, start=1):
             st.image(url, width=300, caption=f"Immagine {idx}")
-            st.markdown(f"[Scarica Immagine {idx}]({url})")
+            button_label = f"Scarica Immagine {idx}"
+            st.download_button(label=button_label, data=url, file_name=f"image_{idx}.jpg")
