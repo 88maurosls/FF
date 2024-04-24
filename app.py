@@ -36,17 +36,18 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def process_image(input_image):
-    # Converti l'immagine in formato JPEG utilizzando rembg
-    jpeg_data = remove(input_image)
+def convert_to_jpeg(image_data):
+    # Converte i dati dell'immagine in formato JPEG
+    with io.BytesIO(image_data) as f:
+        f.seek(0)
+        jpeg_data = f.getvalue()
     return jpeg_data
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             image_data = requests.get(url).content
-            input_image = Image.open(io.BytesIO(image_data))
-            jpeg_data = process_image(input_image)
+            jpeg_data = convert_to_jpeg(image_data)
             st.image(jpeg_data, caption='Immagine', use_column_width=True)
     else:
         st.write("Nessuna immagine trovata.")
