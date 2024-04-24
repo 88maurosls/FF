@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import urllib.request
+import base64
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -44,9 +45,14 @@ def show_images(image_urls):
         st.write("Nessuna immagine trovata.")
 
 def download_image(url):
-    filename = url.split("/")[-1]
-    urllib.request.urlretrieve(url, filename)
-    st.write(f"Immagine '{filename}' scaricata correttamente.")
+    try:
+        with urllib.request.urlopen(url) as response:
+            content = response.read()
+            b64 = base64.b64encode(content).decode()
+            href = f'<a href="data:image/jpeg;base64,{b64}" download="image.jpg">Scarica Immagine</a>'
+            st.markdown(href, unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Errore durante il download dell'immagine: {str(e)}")
 
 def main():
     st.title("Downloader di Immagini da Farfetch")
