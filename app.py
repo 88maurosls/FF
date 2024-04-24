@@ -36,6 +36,10 @@ def get_images_from_url(url):
         return []
 
 def convert_image_to_jpg(image_url):
+    # Se l'URL contiene già .jpg, restituisci l'URL stesso
+    if '.jpg' in image_url.lower():
+        return image_url
+    # Altrimenti, converti l'immagine in formato JPG e restituisci l'URL
     response = requests.get(image_url)
     image = Image.open(io.BytesIO(response.content))
     image_rgb = image.convert('RGB')  # Convert to RGB in case of alpha channel
@@ -51,7 +55,8 @@ def show_images(image_urls):
             with col1:
                 st.image(url, caption="Originale", width=100)
             with col2:
-                st.image(url, caption="Convertita in JPG", width=100) # Lascia questa immagine di fianco
+                jpg_url = convert_image_to_jpg(url)
+                st.image(jpg_url, caption="Convertita in JPG", width=100) # Mostra la vera immagine JPG
     else:
         st.write("Nessuna immagine trovata.")
 
