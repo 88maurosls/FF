@@ -46,10 +46,8 @@ def main():
                 for i, url in enumerate(image_urls, start=1):
                     st.write(f"Immagine {i}:")
                     st.image(url, use_column_width=True)
-                    st.markdown(get_image_download_link(url), unsafe_allow_html=True)
-
-def get_image_download_link(url):
-    return f'<a href="{url}" download>Scarica Immagine</a>'
+                    download_button_label = f"Scarica Immagine {i}"
+                    st.download_button(label=download_button_label, data=url, file_name=f"image_{i}.jpg")
 
 if __name__ == "__main__":
     main()
