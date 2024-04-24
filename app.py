@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import json
 import os
 import urllib.request
+import base64
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -47,7 +48,13 @@ def main():
                     st.write(f"Immagine {i}:")
                     st.image(url, use_column_width=True)
                     download_button_label = f"Scarica Immagine {i}"
-                    st.download_button(label=download_button_label, data=url, file_name=f"image_{i}.jpg")
+                    download_image(url, download_button_label)
+
+def download_image(url, button_label):
+    image_content = urllib.request.urlopen(url).read()
+    base64_image = base64.b64encode(image_content).decode('utf-8')
+    href = f'<a href="data:image/jpeg;base64,{base64_image}" download="{os.path.basename(url)}">{button_label}</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
