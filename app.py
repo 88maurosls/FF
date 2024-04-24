@@ -43,10 +43,14 @@ async def download_image(session, url):
     except Exception as e:
         st.error(f"Errore durante il download dell'immagine: {str(e)}")
 
-async def download_images(image_urls):
-    async with aiohttp.ClientSession() as session:
-        tasks = [download_image(session, url) for url in image_urls]
-        await asyncio.gather(*tasks)
+async def download_image(session, url, width=100):
+    try:
+        async with session.get(url) as response:
+            image_content = await response.read()
+            st.image(image_content, caption='Immagine', width=width)
+    except Exception as e:
+        st.error(f"Errore durante il download dell'immagine: {str(e)}")
+
 
 def main():
     st.title("Downloader di Immagini da Farfetch")
