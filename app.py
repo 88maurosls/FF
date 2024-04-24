@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from PIL import Image
+import io
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -33,10 +35,38 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
+def convert_image(image_data):
+    image = Image.open(io.BytesIO(image_data))
+    if image.format == 'WEBP':
+        image = image.convert('RGB')
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG')
+        buf.seek(0)
+        return buf.getvalue()
+    else:
+        return image_data
+
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.image(url, width=100)
+            response = requests.get(url)
+            st.image(url, width=100)  # Show the image
+            # Button to download the image, possibly converting it if it is a WEBP
+            if '.webp' in url.lower():
+                image_data = convert_image(response.content)
+                st.download_button(
+                    label="Convert & Download",
+                    data=image_data,
+                    file_name=url.split('/')[-1].replace('.webp', '.jpg'),
+                    mime='image/jpeg'
+                )
+            else:
+                st.download_button(
+                    label="Download",
+                    data=response.content,
+                    file_name=url.split('/')[-1],
+                    mime='image/jpeg' if url.lower().endswith('.jpg') else 'image/png'
+                )
     else:
         st.write("No images found.")
 
