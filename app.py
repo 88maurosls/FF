@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+import asyncio
+import aiohttp
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -33,30 +35,40 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def download_image_content(image_url):
-    response = requests.get(image_url)
-    if response.status_code == 200:
-        return response.content
-    return None
+async def download_image(session, url):
+    try:
+        async with session.get(url) as response:
+            if response.status == 200:
+                return await response.read()
+            else:
+                return None
+    except Exception as e:
+        print(f"Errore durante il download dell'immagine: {str(e)}")
+        return None
 
-def show_images(image_urls):
-    if image_urls:
-        for url in image_urls:
-            st.image(url, width=100)
-            content = download_image_content(url)
-            if content:
-                st.download_button(
-                    label="Scarica immagine",
-                    data=content,
-                    file_name=url.split("/")[-1],
-                    mime='image/jpeg'
-                )
-    else:
-        st.write("Nessuna immagine trovata.")
+async def download_images(image_urls):
+    async with aiohttp.ClientSession() as session:
+        tasks = [download_image(session, url) for url in image_urls]
+        images_content = await asyncio.gather(*tasks)
+        return images_content
 
-codice = st.text_input("Inserisci l'ID Farfetch:", "")
-if st.button("Scarica Immagini"):
-    if codice:
-        url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-        image_urls = get_images_from_url(url)
-        show_images(image_urls)
+def show_images(images_content):
+    for content in images_content:
+        if content:
+            st.image(content, use_column_width=True)
+
+def main():
+    st.title("Downloader di Immagini da Farfetch")
+    codice = st.text_input("Inserisci l'ID Farfetch:", "")
+    if st.button("Scarica Immagini"):
+        if codice:
+            url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
+            image_urls = get_images_from_url(url)
+            if image_urls:
+                images_content = asyncio.run(download_images(image_urls))
+                show_images(images_content)
+            else:
+                st.write("Nessuna immagine trovata.")
+
+if __name__ == "__main__":
+    main()
