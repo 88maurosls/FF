@@ -4,7 +4,18 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
-from urllib.parse import urlparse
+
+@st.cache(hash_funcs={io.BytesIO: id}, allow_output_mutation=True)
+def get_and_convert_image(url):
+    response = requests.get(url)
+    image = Image.open(io.BytesIO(response.content))
+    if image.format == 'WEBP':
+        image = image.convert('RGB')
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG')
+        return buf.getvalue()
+    else:
+        return response.content
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -36,19 +47,11 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def convert_and_show_images(image_urls):
+def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            response = requests.get(url)
-            image = Image.open(io.BytesIO(response.content))
-            filename = urlparse(url).path.split('/')[-1].split('.')[0] + '.jpg'  # Estensione cambiata in '.jpg'
-            if image.format == 'WEBP':
-                image = image.convert('RGB')
-                buf = io.BytesIO()
-                image.save(buf, format='JPEG')
-                st.image(buf.getvalue(), caption=filename)
-            else:
-                st.image(image, caption=filename)
+            image_data = get_and_convert_image(url)
+            st.image(image_data, width=100, output_format='JPEG')
     else:
         st.write("Nessuna immagine trovata.")
 
@@ -57,4 +60,4 @@ if st.button("Scarica Immagini"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
-        convert_and_show_images(image_urls)
+        show_images(image_urls)
