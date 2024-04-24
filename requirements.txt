@@ -5,3 +5,5 @@ Pillow
 asyncio
 aiohttp
 rembg
+opencv-python-headless
+numpy
