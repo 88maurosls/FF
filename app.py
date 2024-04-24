@@ -37,21 +37,17 @@ def get_images_from_url(url):
         return []
 
 def process_image(input_image):
-    output_image = remove(input_image)
-    return output_image
+    # Converti l'immagine in formato JPEG utilizzando rembg
+    jpeg_data = remove(input_image)
+    return jpeg_data
 
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             image_data = requests.get(url).content
             input_image = Image.open(io.BytesIO(image_data))
-            output_image = process_image(input_image)
-            # Converte l'immagine in formato JPEG
-            with io.BytesIO() as f:
-                output_image.save(f, format='JPEG')
-                f.seek(0)
-                jpeg_data = f.getvalue()
-            st.image(jpeg_data, caption='Immagine', width=100, use_column_width=False, format='JPEG')
+            jpeg_data = process_image(input_image)
+            st.image(jpeg_data, caption='Immagine', use_column_width=True)
     else:
         st.write("Nessuna immagine trovata.")
 
