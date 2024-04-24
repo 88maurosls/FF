@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from IPython.display import display, Image as IPImage
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -36,10 +37,10 @@ def get_images_from_url(url):
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.markdown(f'<img src="{url}" width="100" type="image/jpeg">', unsafe_allow_html=True)
+            image = requests.get(url)
+            display(IPImage(image.content, format='jpeg'))
     else:
         st.write("Nessuna immagine trovata.")
-
 
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
