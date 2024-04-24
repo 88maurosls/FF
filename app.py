@@ -33,19 +33,15 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-# Funzione per convertire l'immagine in JPEG
-def convert_image(image_data):
+# Funzione per convertire l'immagine in JPEG e codificarla in base64
+def convert_and_encode_image(image_data):
     image = Image.open(io.BytesIO(image_data))
     if image.format == 'WEBP':
         image = image.convert('RGB')
     img_buffer = io.BytesIO()
     image.save(img_buffer, format="JPEG")
-    return img_buffer.getvalue()
-
-# Funzione per salvare temporaneamente l'immagine convertita
-def save_temp_image(image_data):
-    with open("temp_image.jpg", "wb") as f:
-        f.write(image_data)
+    encoded_image = base64.b64encode(img_buffer.getvalue()).decode()
+    return encoded_image
 
 # Interfaccia utente Streamlit
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
@@ -58,6 +54,6 @@ if st.button("Scarica Immagini"):
             if st.button("Convert & Download", key=url):
                 with st.spinner('Processing image...'):
                     response = requests.get(url)
-                    converted_image_data = convert_image(response.content)
-                    save_temp_image(converted_image_data)
-                    st.markdown(get_binary_file_downloader_html("temp_image.jpg", "Download Image"), unsafe_allow_html=True)
+                    encoded_image = convert_and_encode_image(response.content)
+                    href = f'<a href="data:image/jpeg;base64,{encoded_image}" download="image.jpg">Download Image</a>'
+                    st.markdown(href, unsafe_allow_html=True)
