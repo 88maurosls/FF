@@ -2,6 +2,9 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+import os
+from PIL import Image
+from io import BytesIO
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -35,10 +38,26 @@ def get_images_from_url(url):
 
 def show_images(image_urls):
     if image_urls:
-        for url in image_urls:
+        for i, url in enumerate(image_urls):
+            response = requests.get(url)
+            img = Image.open(BytesIO(response.content))
+            img.save(f'image_{i}.png')
             st.image(url, width=100)
     else:
         st.write("Nessuna immagine trovata.")
+
+def download_images(image_urls):
+    if image_urls:
+        for i, url in enumerate(image_urls):
+            with open(f'image_{i}.png', "rb") as file:
+                btn = st.download_button(
+                    label="Download Image",
+                    data=file,
+                    file_name=f'image_{i}.png',
+                    mime="image/png"
+                )
+    else:
+        st.write("Nessuna immagine disponibile per il download.")
 
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
@@ -46,3 +65,4 @@ if st.button("Scarica Immagini"):
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
         show_images(image_urls)
+        download_images(image_urls)
