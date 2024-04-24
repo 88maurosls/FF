@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import shutil
 from bs4 import BeautifulSoup
 import json
 import os
@@ -34,14 +35,14 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def download_image(image_url):
+def fast_save_image(image_url):
     try:
         response = requests.get(image_url, stream=True)
         if response.status_code == 200:
             file_name = os.path.basename(image_url).split('?')[0] + ".jpg"
-            with open(file_name, 'wb') as f:
-                for chunk in response.iter_content(1024):
-                    f.write(chunk)
+            with open(file_name, 'wb') as out_file:
+                shutil.copyfileobj(response.raw, out_file)
+            del response
             st.success(f"Immagine salvata: {file_name}")
         else:
             st.error(f"Errore HTTP {response.status_code} durante il download di {image_url}")
@@ -52,7 +53,7 @@ def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)
-            download_image(url)
+            fast_save_image(url)
     else:
         st.write("Nessuna immagine trovata.")
 
