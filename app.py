@@ -35,13 +35,14 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-async def download_image(session, url):
+async def download_image(session, url, width=100):
     try:
         async with session.get(url) as response:
             image_content = await response.read()
-            st.image(image_content, caption='Immagine', use_column_width=True)
+            st.image(image_content, caption='Immagine', width=width)
     except Exception as e:
         st.error(f"Errore durante il download dell'immagine: {str(e)}")
+
 
 async def download_images(image_urls):
     async with aiohttp.ClientSession() as session:
