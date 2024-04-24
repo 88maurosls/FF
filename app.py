@@ -55,4 +55,4 @@ if st.button("Scarica Immagini"):
             st.image(url, width=300, caption=f"Immagine {idx}")
             temp_file = download_image_as_temp_jpg(url)
             if temp_file is not None:
-                st.markdown(f"![Scarica Immagine {idx}]({temp_file.name})")
+                st.markdown(f"<a href='{temp_file.name}' download>Scarica Immagine {idx}</a>", unsafe_allow_html=True)
