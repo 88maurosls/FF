@@ -21,13 +21,14 @@ def download_image(url):
         st.warning(f"Errore durante il download dell'immagine: {str(e)}")
         return None
 
-# Funzione per convertire le immagini in formato JPEG utilizzando rembg
+# Funzione per convertire le immagini in formato JPEG senza rimuovere lo sfondo
 def convert_to_jpeg(image):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    jpeg_data = remove(png_data, alpha_matting=True, alpha_matting_foreground_threshold=0, alpha_matting_background_threshold=0)
+    jpeg_data = remove(png_data, alpha_matting=False)
     return Image.open(io.BytesIO(jpeg_data))
+
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=10, ttl=3600)
