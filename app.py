@@ -2,8 +2,10 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+import os
+import urllib.request
+import base64
 
-@st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
     try:
         res = requests.get(url, headers={'user-agent': 'some agent'})
@@ -33,16 +35,21 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
-def show_images(image_urls):
-    if image_urls:
-        for url in image_urls:
-            st.image(url, width=100)
-    else:
-        st.write("Nessuna immagine trovata.")
+def main():
+    st.title("Downloader di Immagini da Farfetch")
+    codice = st.text_input("Inserisci l'ID Farfetch:", "")
+    if st.button("Scarica Immagini"):
+        if codice:
+            url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
+            image_urls = get_images_from_url(url)
+            if image_urls:
+                for i, url in enumerate(image_urls, start=1):
+                    st.write(f"Immagine {i}:")
+                    show_image(url, i)
 
-codice = st.text_input("Inserisci l'ID Farfetch:", "")
-if st.button("Scarica Immagini"):
-    if codice:
-        url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-        image_urls = get_images_from_url(url)
-        show_images(image_urls)
+def show_image(url, index):
+    image_content = urllib.request.urlopen(url).read()
+    st.image(image_content, caption=f"Immagine {index}", use_column_width=True)
+
+if __name__ == "__main__":
+    main()
