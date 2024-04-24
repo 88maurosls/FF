@@ -25,8 +25,10 @@ def download_image(url):
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
+# Funzione per convertire le immagini in formato JPEG senza scontornare
 def convert_to_jpeg(image):
-    return Image
+    return image
+
 
 
 
