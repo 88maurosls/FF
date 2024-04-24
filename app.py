@@ -2,8 +2,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
-import urllib.request
-import base64
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -39,20 +37,12 @@ def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)
-            if st.button("Scarica", key=url):  # Aggiungi un pulsante "Scarica" sotto ogni immagine
-                download_image(url)
+            st.markdown(get_image_download_link(url), unsafe_allow_html=True)
     else:
         st.write("Nessuna immagine trovata.")
 
-def download_image(url):
-    try:
-        with urllib.request.urlopen(url) as response:
-            content = response.read()
-            b64 = base64.b64encode(content).decode()
-            href = f'<a href="data:image/jpeg;base64,{b64}" download="image.jpg">Scarica Immagine</a>'
-            st.markdown(href, unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Errore durante il download dell'immagine: {str(e)}")
+def get_image_download_link(url):
+    return f'<a href="{url}" target="_blank">Scarica Immagine</a>'
 
 def main():
     st.title("Downloader di Immagini da Farfetch")
