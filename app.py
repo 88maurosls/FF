@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
-from PIL import Image
+import numpy as np
+import cv2
 import io
 
 @st.cache(allow_output_mutation=True)
@@ -36,15 +37,11 @@ def get_images_from_url(url):
         return []
 
 def convert_image_to_jpg(image_url):
-    # Se l'URL contiene già .jpg, restituisci l'URL stesso
-    if '.jpg' in image_url.lower():
-        return image_url
-    # Altrimenti, converti l'immagine in formato JPG e restituisci l'URL
     response = requests.get(image_url)
-    image = Image.open(io.BytesIO(response.content))
-    image_rgb = image.convert('RGB')  # Convert to RGB in case of alpha channel
+    image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
     buffer = io.BytesIO()
-    image_rgb.save(buffer, format='JPEG')
+    cv2.imwrite(buffer, image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
     buffer.seek(0)
     return buffer
 
@@ -56,7 +53,7 @@ def show_images(image_urls):
                 st.image(url, caption="Originale", width=100)
             with col2:
                 jpg_url = convert_image_to_jpg(url)
-                st.image(jpg_url, caption="Convertita in JPG", width=100) # Mostra la vera immagine JPG
+                st.image(jpg_url, caption="Convertita in JPG", width=100)
     else:
         st.write("Nessuna immagine trovata.")
 
