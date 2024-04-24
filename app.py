@@ -5,47 +5,38 @@ import json
 from PIL import Image
 import io
 
-@st.cache(allow_output_mutation=True)
+# Funzione per scaricare e memorizzare in cache le immagini
+@st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=20, ttl=3600)
+def download_image(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            image = Image.open(io.BytesIO(response.content))
+            return image
+        else:
+            st.warning(f"Errore durante il download dell'immagine: {response.status_code}")
+            return None
+    except Exception as e:
+        st.warning(f"Errore durante il download dell'immagine: {str(e)}")
+        return None
+
+# Funzione per convertire le immagini in formato JPEG
+def convert_to_jpeg(image):
+    with io.BytesIO() as output:
+        image.save(output, format="JPEG")
+        jpeg_data = output.getvalue()
+    return Image.open(io.BytesIO(jpeg_data))
+
+# Funzione per ottenere le immagini dall'URL
+@st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=10, ttl=3600)
 def get_images_from_url(url):
     try:
-        res = requests.get(url, headers={'user-agent': 'some agent'})
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.content, 'html.parser')
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
             script_data = soup.find('script', type='application/ld+json')
             if script_data:
                 data = json.loads(script_data.text)
                 images = data.get('image')
                 image_urls = []
-                if images:
-                    if isinstance(images, list):
-                        for img in images:
-                            if isinstance(img, dict):
-                                image_urls.append(img.get('contentUrl'))
-                    else:
-                        if isinstance(images, dict):
-                            image_urls.append(images.get('contentUrl'))
-                return image_urls
-            else:
-                st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
-                return []
-        else:
-            st.error(f"Errore HTTP: {res.status_code}")
-            return []
-    except Exception as e:
-        st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
-        return []
-
-def show_images(image_urls):
-    if image_urls:
-        for url in image_urls:
-            image_data = requests.get(url).content
-            st.image(image_data, caption='Immagine', use_column_width=True, format='JPEG')
-    else:
-        st.write("Nessuna immagine trovata.")
-
-codice = st.text_input("Inserisci l'ID Farfetch:", "")
-if st.button("Scarica Immagini"):
-    if codice:
-        url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-        image_urls = get_images_from_url(url)
-        show_images(image_urls)
+                if
