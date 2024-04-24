@@ -22,12 +22,14 @@ def download_image(url):
         return None
 
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
+# Funzione per convertire le immagini in formato JPEG utilizzando rembg
 def convert_to_jpeg(image):
     with io.BytesIO() as output:
         image.save(output, format="PNG")
         png_data = output.getvalue()
-    jpeg_data = remove(png_data, alpha_matting=True)  # Impostare alpha_matting=True per un effetto finale di rembg pari a 0
+    jpeg_data = remove(png_data, alpha_matte=False)  # Impostare alpha_matte=False per ottenere un'immagine senza scontorno
     return Image.open(io.BytesIO(jpeg_data))
+
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=10, ttl=3600)
