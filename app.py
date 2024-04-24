@@ -24,10 +24,12 @@ def download_image(url):
         st.warning(f"Errore durante il download dell'immagine: {str(e)}")
         return None
 
-# Funzione per ridurre le dimensioni delle immagini
-def resize_image(image, max_size=(800, 800)):
-    image.thumbnail(max_size, Image.ANTIALIAS)
-    return image
+# Funzione per convertire le immagini in formato JPEG utilizzando rembg
+def convert_to_jpeg(image):
+    with io.BytesIO() as output:
+        image.save(output, format="PNG")
+        png_data = output.getvalue()
+    return Image.open(io.BytesIO(remove(png_data)))
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=10, ttl=3600)
@@ -60,23 +62,15 @@ def get_images_from_url(url):
         st.warning(f"Errore durante il recupero delle immagini dall'URL: {str(e)}")
         return []
 
-# Funzione per rimuovere lo sfondo dalle immagini utilizzando rembg
-def remove_background(image):
-    with io.BytesIO() as output:
-        image.save(output, format="PNG")
-        image_data = output.getvalue()
-    return Image.open(io.BytesIO(remove(image_data)))
-
 # Funzione per visualizzare le immagini
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
-            st.subheader("Immagine originale")
-            original_image = download_image(url)
-            st.image(original_image, use_column_width=True, caption="Immagine originale")
-            st.subheader("Immagine con sfondo rimosso")
-            removed_background_image = remove_background(original_image)
-            st.image(removed_background_image, use_column_width=True, caption="Immagine con sfondo rimosso")
+            st.subheader("Immagine")
+            image = download_image(url)
+            if image:
+                jpeg_image = convert_to_jpeg(image)
+                st.image(jpeg_image, use_column_width=True, caption='Immagine in formato JPEG')
     else:
         st.warning("Nessuna immagine trovata.")
 
