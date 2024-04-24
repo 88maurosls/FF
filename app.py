@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from PIL import Image
+import io
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True)
@@ -30,6 +32,15 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
+# Funzione per scaricare e salvare l'immagine come file JPEG
+def download_image_as_jpg(image_url, file_path):
+    try:
+        response = requests.get(image_url)
+        image = Image.open(io.BytesIO(response.content))
+        image.save(file_path, "JPEG")
+    except Exception as e:
+        st.error(f"Error downloading image: {str(e)}")
+
 # Interfaccia utente Streamlit
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
@@ -39,4 +50,6 @@ if st.button("Scarica Immagini"):
         for idx, url in enumerate(image_urls, start=1):
             st.image(url, width=300, caption=f"Immagine {idx}")
             button_label = f"Scarica Immagine {idx}"
-            st.download_button(label=button_label, data=url, file_name=f"image_{idx}.jpg")
+            file_name = f"image_{idx}.jpg"
+            download_image_as_jpg(url, file_name)
+            st.markdown(f"[{button_label}]({file_name})")
