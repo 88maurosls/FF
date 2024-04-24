@@ -4,12 +4,11 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
-from urllib.parse import urlparse
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
     try:
-        res = requests.get(url, headers={'user-agent': 'some agent'})
+        res = requests.get(url, headers={'user-agent': 'my user agent'})
         if res.status_code == 200:
             soup = BeautifulSoup(res.content, 'html.parser')
             script_data = soup.find('script', type='application/ld+json')
@@ -27,33 +26,35 @@ def get_images_from_url(url):
                             image_urls.append(images.get('contentUrl'))
                 return image_urls
             else:
-                st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
+                st.error("No 'application/ld+json' script found in the HTML content.")
                 return []
         else:
-            st.error(f"Errore HTTP: {res.status_code}")
+            st.error(f"HTTP Error: {res.status_code}")
             return []
     except Exception as e:
-        st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
+        st.error(f"Error while trying to retrieve images from URL: {str(e)}")
         return []
 
 def convert_and_show_images(image_urls):
     if image_urls:
         for url in image_urls:
             response = requests.get(url)
-            content_type = response.headers['Content-Type']
-            if 'image/webp' in content_type:
+            if 'image/webp' in response.headers.get('Content-Type', ''):
+                # Convert webp to jpg
                 image = Image.open(io.BytesIO(response.content))
                 image = image.convert('RGB')
                 buf = io.BytesIO()
                 image.save(buf, format='JPEG')
-                st.image(buf.getvalue(), width=100, output_format='JPEG')
+                buf.seek(0)
+                st.image(buf, width=100, format='JPEG')
             else:
+                # Directly show the image if not webp
                 st.image(url, width=100)
     else:
-        st.write("Nessuna immagine trovata.")
+        st.write("No images found.")
 
-codice = st.text_input("Inserisci l'ID Farfetch:", "")
-if st.button("Scarica Immagini"):
+codice = st.text_input("Insert Farfetch ID:", "")
+if st.button("Download Images"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
         image_urls = get_images_from_url(url)
