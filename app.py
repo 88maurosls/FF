@@ -25,11 +25,7 @@ def download_image(url):
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
 # Funzione per convertire le immagini in formato JPEG utilizzando rembg
-def convert_to_jpeg(image, quality=95, noise_level=0):
-    with io.BytesIO() as output:
-        image.save(output, format="PNG")
-        png_data = output.getvalue()
-    jpeg_data = remove(png_data, quality=0, noise_level=0)
+def convert_to_jpeg(image):
     return Image
 
 
