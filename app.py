@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from PIL import Image
+import io
 
 @st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
@@ -33,10 +35,20 @@ def get_images_from_url(url):
         st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
         return []
 
+def save_image(image_url):
+    try:
+        response = requests.get(image_url)
+        image = Image.open(io.BytesIO(response.content))
+        image.save(f"{image_url.split('/')[-1].split('?')[0]}.jpg", "JPEG")
+        st.success(f"Salvata: {image_url.split('/')[-1].split('?')[0]}.jpg")
+    except Exception as e:
+        st.error(f"Non è stato possibile salvare l'immagine {image_url}: {str(e)}")
+
 def show_images(image_urls):
     if image_urls:
         for url in image_urls:
             st.image(url, width=100)
+            save_image(url)
     else:
         st.write("Nessuna immagine trovata.")
 
