@@ -4,4 +4,4 @@ beautifulsoup4
 Pillow
 asyncio
 aiohttp
-webptools
+pyvips
