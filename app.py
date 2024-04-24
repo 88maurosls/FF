@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import json
 from PIL import Image
 import io
+import tempfile
 
 # Funzione per ottenere le immagini dall'URL
 @st.cache(allow_output_mutation=True)
@@ -32,12 +33,14 @@ def get_images_from_url(url):
         st.error(f"Error retrieving images from URL: {str(e)}")
         return []
 
-# Funzione per scaricare e salvare l'immagine come file JPEG
-def download_image_as_jpg(image_url):
+# Funzione per scaricare e salvare l'immagine come file JPEG temporaneo
+def download_image_as_temp_jpg(image_url):
     try:
         response = requests.get(image_url)
         image = Image.open(io.BytesIO(response.content))
-        return image
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+        image.save(temp_file.name, "JPEG")
+        return temp_file
     except Exception as e:
         st.error(f"Error downloading image: {str(e)}")
         return None
@@ -50,11 +53,6 @@ if st.button("Scarica Immagini"):
         image_urls = get_images_from_url(url)
         for idx, url in enumerate(image_urls, start=1):
             st.image(url, width=300, caption=f"Immagine {idx}")
-            image = download_image_as_jpg(url)
-            if image is not None:
-                st.download_button(
-                    label=f"Scarica Immagine {idx}",
-                    data=image,
-                    file_name=f"image_{idx}.jpg",
-                    mime="image/jpeg"
-                )
+            temp_file = download_image_as_temp_jpg(url)
+            if temp_file is not None:
+                st.markdown(f"![Scarica Immagine {idx}]({temp_file.name})")
