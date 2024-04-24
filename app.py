@@ -60,12 +60,17 @@ def main():
             url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
             image_urls = get_images_from_url(url)
             if image_urls:
-                columns = st.beta_columns(len(image_urls))
-                asyncio.run(download_images(image_urls, columns))
+                images_per_row = 3  # Numero di immagini per riga
+                rows = [st.empty() for _ in range(len(image_urls) // images_per_row + 1)]
+                for i, url in enumerate(image_urls):
+                    row_index = i // images_per_row
+                    with rows[row_index]:
+                        st.image(url, caption=f"Immagine {i+1}", width=100)
             else:
                 st.write("Nessuna immagine trovata.")
 
 if __name__ == "__main__":
     main()
+
 
 
