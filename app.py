@@ -39,7 +39,7 @@ def show_images(image_urls):
     else:
         st.write("Nessuna immagine trovata.")
 
-codice = st.text_input("Inserisci l'ID Farfetch:", "")
+codice = st.text_input("Inserisci l'ID FF:", "")
 if st.button("Scarica Immagini"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
