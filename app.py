@@ -5,28 +5,28 @@ import json
 from PIL import Image
 from io import BytesIO
 
+session = requests.Session()
+session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'})
+
 @st.cache_resource
 def get_images_from_url(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
-    res = requests.get(url, headers=headers)
+    res = session.get(url)
     if res.status_code == 200:
-        st.write("Connessione riuscita, analisi del contenuto HTML in corso...")
         soup = BeautifulSoup(res.content, 'html.parser')
         script_data = soup.find('script', type='application/ld+json')
         if script_data:
-            st.write("Script JSON trovato, estrazione delle immagini...")
             data = json.loads(script_data.text)
             images = data.get('image')
             if images:
                 return images if isinstance(images, list) else [images]
-            else:
-                st.error("Nessuna immagine trovata nel JSON.")
         else:
             st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
     else:
         st.error(f"Errore HTTP: {res.status_code} - Fallito il tentativo di connessione all'URL fornito.")
-
     return []
+
+
+
 
 def show_images(images):
     if images:
