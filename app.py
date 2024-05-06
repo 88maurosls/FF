@@ -7,7 +7,8 @@ from io import BytesIO
 
 @st.cache_resource
 def get_images_from_url(url):
-    res = requests.get(url, headers={'user-agent': 'some agent'})
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
+    res = requests.get(url, headers=headers)
     if res.status_code == 200:
         soup = BeautifulSoup(res.content, 'html.parser')
         script_data = soup.find('script', type='application/ld+json')
@@ -21,6 +22,7 @@ def get_images_from_url(url):
     else:
         st.error(f"Errore HTTP: {res.status_code}")
     return []
+
 
 def show_images(images):
     if images:
