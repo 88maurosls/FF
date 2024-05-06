@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
+@st.cache(allow_output_mutation=True)
 def get_images_from_url(url):
     try:
         res = requests.get(url, headers={'user-agent': 'some agent'})
