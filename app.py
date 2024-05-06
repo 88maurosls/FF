@@ -42,6 +42,6 @@ def show_images(image_urls):
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
     if codice:
-        url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
+        url = f'https://www.farfetch.com/shopping/item-{codice}.aspx'
         image_urls = get_images_from_url(url)
         show_images(image_urls)
