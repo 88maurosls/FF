@@ -2,47 +2,56 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import json
+from PIL import Image
+from io import BytesIO
 
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def get_images_from_url(url):
-    try:
-        res = requests.get(url, headers={'user-agent': 'some agent'})
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.content, 'html.parser')
-            script_data = soup.find('script', type='application/ld+json')
-            if script_data:
-                data = json.loads(script_data.text)
-                images = data.get('image')
-                image_urls = []
-                if images:
-                    if isinstance(images, list):
-                        for img in images:
-                            if isinstance(img, dict):
-                                image_urls.append(img.get('contentUrl'))
-                    else:
-                        if isinstance(images, dict):
-                            image_urls.append(images.get('contentUrl'))
-                return image_urls
-            else:
-                st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
-                return []
+    res = requests.get(url, headers={'user-agent': 'some agent'})
+    if res.status_code == 200:
+        soup = BeautifulSoup(res.content, 'html.parser')
+        script_data = soup.find('script', type='application/ld+json')
+        if script_data:
+            data = json.loads(script_data.text)
+            images = data.get('image')
+            if images:
+                return images if isinstance(images, list) else [images]
         else:
-            st.error(f"Errore HTTP: {res.status_code}")
-            return []
-    except Exception as e:
-        st.error(f"Errore durante il tentativo di recupero delle immagini dall'URL: {str(e)}")
-        return []
+            st.error("Nessun script di tipo 'application/ld+json' trovato nel contenuto HTML.")
+    else:
+        st.error(f"Errore HTTP: {res.status_code}")
+    return []
 
-def show_images(image_urls):
-    if image_urls:
-        for url in image_urls:
-            st.image(url, width=100)
+def show_images(images):
+    if images:
+        for img in images:
+            if isinstance(img, dict):
+                img_url = img.get('contentUrl')
+                st.image(img_url, width=100, caption=img_url)
     else:
         st.write("Nessuna immagine trovata.")
+
+def download_image(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        img = Image.open(BytesIO(response.content))
+        img.save(f'temp_image.png')
+        with open('temp_image.png', "rb") as file:
+            st.download_button(
+                label="Download Image",
+                data=file,
+                file_name='downloaded_image.png',
+                mime="image/png"
+            )
 
 codice = st.text_input("Inserisci l'ID Farfetch:", "")
 if st.button("Scarica Immagini"):
     if codice:
         url = f'https://www.farfetch.com/shopping/item{codice}.aspx'
-        image_urls = get_images_from_url(url)
-        show_images(image_urls)
+        images = get_images_from_url(url)
+        show_images(images)
+        if st.button("Download Selected Image"):
+            for image in images:
+                if isinstance(image, dict):
+                    img_url = image.get('contentUrl')
+                    download_image(img_url)
